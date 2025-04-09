@@ -12,6 +12,7 @@ class Task extends Model implements HasMedia
     use HasFactory, InteractsWithMedia;
 
     protected $fillable = ['name', 'is_completed', 'due_date'];
+    protected $appends = ['mediaFile']; // Add mediaFile to appended attributes
 
     public function casts(): array
     {
@@ -19,5 +20,14 @@ class Task extends Model implements HasMedia
             'is_completed' => 'boolean',
             'due_date' => 'date',
         ];
+    }
+
+    public function getMediaFileAttribute()
+    {
+        if ($this->relationLoaded('media')) {
+            return $this->getFirstMedia();
+        }
+
+        return null;
     }
 }

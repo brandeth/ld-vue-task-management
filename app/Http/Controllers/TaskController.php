@@ -15,9 +15,10 @@ class TaskController extends Controller
      */
     public function index()
     {
-        $tasks = Task::paginate(50);
         return Inertia::render('Tasks/Index', [
-            'tasks' => $tasks,
+            'tasks' => Task::with('media')
+                ->orderBy('created_at', 'desc') // 👈 Sort newest first
+                ->paginate(50),
         ]);
     }
 
@@ -35,6 +36,11 @@ class TaskController extends Controller
     public function store(StoreTaskRequest $request)
     {
         $task = Task::create($request->validated() + ['is_completed' => false]);
+
+        if ($request->hasFile('media')) {
+            $task->addMedia($request->file('media'))->toMediaCollection();
+        }
+
         return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
     }
 

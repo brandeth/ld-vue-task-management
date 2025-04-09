@@ -35,16 +35,16 @@ const form = useForm({
 });
 
 const createTask = () => {
-    form.transform((data) => {
-        const transformedData = {
-            ...data,
-            due_date: data.due_date ? data.due_date.toString() : null,
-        };
-        if (data.media) {
-            transformedData.media = data.media[0]; // Handle file input
-        }
-        return transformedData;
-    }).post(route('tasks.store'), {
+    
+    form.transform((data) => ({
+        ...data,
+        due_date: data.due_date
+            ? data.due_date.toString()
+            : null,
+        media: data.media, // Ensure the file is preserved
+    })).post(route('tasks.store'), {
+        forceFormData: true, // Use FormData for file uploads
+        preserveScroll: true,
         onSuccess: () => {
             toast.success('Task created successfully.');
             router.visit('/tasks');
@@ -53,7 +53,6 @@ const createTask = () => {
             toast.error('Failed to create task. Please try again.');
             console.error('Failed to create task:', errors);
         },
-        preserveScroll: true,
     });
 };
 
@@ -65,7 +64,11 @@ const fileSelected = (event: Event) => {
         return;
     }
 
+    console.log(file, 'file')
+
     form.media = file;
+
+    console.log(form.media, 'form.media')
 };
 </script>
 
@@ -102,7 +105,7 @@ const fileSelected = (event: Event) => {
                 </div>
                 <div class="space-y-2">
                     <Label for="taskMedia">Task Media</Label>
-                    <Input type="file" id="name" v-on:change="fileSelected($event)" class="mt-1 block w-full" />
+                    <Input type="file" id="name" @change="fileSelected($event)" class="mt-1 block w-full" />
                     <InputError :message="form.errors.media" />
                     <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress> <!-- Updated progress indicator -->
                 </div>
