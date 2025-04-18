@@ -5,7 +5,7 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, ClipboardList } from 'lucide-vue-next';
+import { BookOpen, ClipboardList, Folder, LayoutGrid } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const page = usePage();
@@ -21,8 +21,13 @@ const mainNavItems: NavItem[] = [
         title: 'Tasks',
         url: '/tasks',
         icon: ClipboardList,
-        isActive: page.url.startsWith('/tasks'),
+        isActive: page.url.startsWith('/tasks') || page.url.startsWith('/task-categories'),
         items: [
+            {
+                title: 'Manage Task Categories',
+                url: '/task-categories',
+                isActive: page.url === '/task-categories',
+            },
             {
                 title: 'Create Task',
                 url: '/tasks/create',
