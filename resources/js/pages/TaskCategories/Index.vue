@@ -14,6 +14,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, PaginatedResponse, TaskCategory } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -37,7 +38,21 @@ interface Props {
 defineProps<Props>();
 
 const deleteCategory = (taskCategory: TaskCategory) => {
-    // TODO
+    if (taskCategory.tasks_count === 0) {
+        if (confirm('Are you sure you want to delete this task category?')) {
+            router.delete(route('task-categories.destroy', taskCategory.id));
+            toast.success('Task Category deleted successfully');
+        }
+    } else {
+        if (
+            confirm(
+                'This category has tasks assigned to it. Are you sure you want to delete it? This will also delete all the tasks assigned to this category.',
+            )
+        ) {
+            router.delete(route('task-categories.destroy', taskCategory.id));
+            toast.success('Task Category deleted successfully');
+        }
+    }
 };
 </script>
 
@@ -46,8 +61,11 @@ const deleteCategory = (taskCategory: TaskCategory) => {
         <Head title="Task Categories List" />
 
         <div class="px-4 pt-4">
-            <div class="my-4">
-                <Link :class="buttonVariants({ variant: 'outline' })" href="/task-categories/create"> Create Task Category </Link>
+            <div class="mb-4 flex justify-between">
+                <h1 class="text-2xl font-bold">Task Categories</h1>
+                <div class="flex items-center gap-x-2">
+                    <Link :class="buttonVariants({ variant: 'outline' })" href="/task-categories/create"> Create Task Category </Link>
+                </div>
             </div>
 
             <Table class="mt-4">

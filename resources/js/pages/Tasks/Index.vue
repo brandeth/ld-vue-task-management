@@ -65,7 +65,10 @@ const deleteTask = (id: number, name: string) => {
         <div class="px-4 pt-4">
             <div class="mb-4 flex items-center justify-between">
                 <h1 class="text-2xl font-bold">Task List</h1>
-                <Link href="/tasks/create" :class="buttonVariants({ variant: 'outline' })"> Create New Task </Link>
+                <div class="flex items-center gap-2">
+                    <Link href="/tasks/create" :class="buttonVariants({ variant: 'outline' })"> Create New Task </Link>
+                    <Link :class="buttonVariants({ variant: 'outline' })" href="/task-categories"> Manage Task Categories</Link>
+                </div>
             </div>
 
             <Table class="min-w-full border-collapse">

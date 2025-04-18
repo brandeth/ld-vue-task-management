@@ -21,17 +21,17 @@ const mainNavItems: NavItem[] = [
         title: 'Tasks',
         url: '/tasks',
         icon: ClipboardList,
-        isActive: page.url.startsWith('/tasks'),
+        isActive: page.url.startsWith('/tasks') || page.url.startsWith('/task-categories'),
         items: [
+            {
+                title: 'Manage Task Categories',
+                url: '/task-categories',
+                isActive: page.url === '/task-categories',
+            },
             {
                 title: 'Create Task',
                 url: '/tasks/create',
                 isActive: page.url === '/tasks/create',
-            },
-            {
-                title: 'Manage Task Categories',
-                url: '/task-categories',
-                isActive: page.url.startsWith('/task-categories'),
             },
         ],
     },

@@ -39,6 +39,13 @@ class TaskCategoryController extends Controller
         ]);
     }
 
+    public function show(TaskCategory $taskCategory): Response
+    {
+        return Inertia::render('TaskCategories/Show', [
+            'taskCategory' => $taskCategory->load(['tasks']),
+        ]);
+    }
+
     public function update(UpdateTaskCategoryRequest $request, TaskCategory $taskCategory): RedirectResponse
     {
         $taskCategory->update($request->validated());
