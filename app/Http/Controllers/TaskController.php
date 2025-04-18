@@ -49,6 +49,9 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
+        $task->load(['media']);
+        $task->append(['mediaFile']);
+
         return Inertia::render('Tasks/Edit', [
             'task' => $task,
         ]);
@@ -60,6 +63,10 @@ class TaskController extends Controller
     public function update(UpdateTaskRequest $request, Task $task)
     {
         $task->update($request->validated());
+        if ($request->hasFile('media')) {
+            $task->getFirstMedia()?->delete();
+            $task->addMedia($request->file('media'))->toMediaCollection();
+        }
         return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
     }
 
