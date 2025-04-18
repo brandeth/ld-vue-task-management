@@ -73,6 +73,7 @@ const deleteTask = (id: number, name: string) => {
                     <TableRow class="bg-gray-100">
                         <TableHead class="w-[100px] font-bold">ID</TableHead>
                         <TableHead class="font-bold">Name</TableHead>
+                        <TableHead class="w-[100px] font-bold">File</TableHead>
                         <TableHead class="w-[100px] font-bold">Completed</TableHead>
                         <TableHead class="w-[200px]">Due Date</TableHead>
                         <TableHead class="w-[100px] font-bold">Actions</TableHead>
@@ -82,6 +83,11 @@ const deleteTask = (id: number, name: string) => {
                     <TableRow v-for="task in props.tasks.data" :key="task.id">
                         <TableCell>{{ task.id }}</TableCell>
                         <TableCell>{{ task.name }}</TableCell>
+                        <TableCell>
+                            <a v-if="task.mediaFile" :href="task.mediaFile.original_url" target="_blank">
+                                <img :src="task.mediaFile.original_url" class="h-8 w-8 object-cover rounded-full" />
+                            </a>
+                        </TableCell>
                         <TableCell>{{ task.is_completed ? 'Yes' : 'No' }}</TableCell>
                         <TableCell>{{ task.due_date ? df.format(new Date(task.due_date)) : '' }}</TableCell>
                         <TableCell>

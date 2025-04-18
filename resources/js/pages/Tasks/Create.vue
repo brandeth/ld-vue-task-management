@@ -30,14 +30,21 @@ const df = new DateFormatter('en-US', {
 const form = useForm({
     name: '',
     is_completed: false,
-    due_date: null,
+    due_date: '',
+    media: '', // Added media field
 });
 
 const createTask = () => {
+    
     form.transform((data) => ({
         ...data,
-        due_date: data.due_date ? data.due_date.toString() : null,
+        due_date: data.due_date
+            ? data.due_date.toString()
+            : null,
+        media: data.media, // Ensure the file is preserved
     })).post(route('tasks.store'), {
+        forceFormData: true, // Use FormData for file uploads
+        preserveScroll: true,
         onSuccess: () => {
             toast.success('Task created successfully.');
             router.visit('/tasks');
@@ -46,15 +53,29 @@ const createTask = () => {
             toast.error('Failed to create task. Please try again.');
             console.error('Failed to create task:', errors);
         },
-        preserveScroll: true,
     });
+};
+
+const fileSelected = (event: Event) => { 
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+
+    if (!file) {
+        return;
+    }
+
+    console.log(file, 'file')
+
+    form.media = file;
+
+    console.log(form.media, 'form.media')
 };
 </script>
 
 <template>
     <Head title="Create Task" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4">
+        <div class="p-4 max-w-2xl">
             <h1 class="mb-4 text-2xl font-bold">Create New Task</h1>
             <form @submit.prevent="createTask" class="space-y-4">
                 <div class="space-y-2">
@@ -69,7 +90,7 @@ const createTask = () => {
                         <PopoverTrigger as-child>
                             <Button
                                 variant="outline"
-                                :class="cn('w-[280px] justify-start text-left font-normal', !form.due_date && 'text-muted-foreground')"
+                                :class="cn('justify-start text-left font-normal', !form.due_date && 'text-muted-foreground')"
                             >
                                 <CalendarIcon class="mr-2 h-4 w-4" />
                                 {{ form.due_date ? df.format(form.due_date.toDate(getLocalTimeZone())) : 'Pick a date' }}
@@ -82,13 +103,17 @@ const createTask = () => {
 
                     <InputError :message="form.errors.due_date" />
                 </div>
-                <!-- <div class="flex items-center">
-          <Input v-model="form.is_completed" id="isCompleted" type="checkbox" />
-          <Label for="isCompleted" class="ml-2">Mark as Completed</Label>
-        </div> -->
-                <div class="flex justify-end gap-2">
-                    <Link href="/tasks" :class="buttonVariants({ variant: 'outline' })">Cancel</Link>
-                    <Button type="submit" :disabled="form.processing">Create</Button>
+                <div class="space-y-2">
+                    <Label for="taskMedia">Task Media</Label>
+                    <Input type="file" id="name" @change="fileSelected($event)" class="mt-1 block w-full" />
+                    <InputError :message="form.errors.media" />
+                    <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress> <!-- Updated progress indicator -->
+                </div>
+                <div>
+                    <div class="flex justify-start gap-2 mt-8">
+                        <Link href="/tasks" :class="buttonVariants({ variant: 'outline' })">Cancel</Link>
+                        <Button type="submit" :disabled="form.processing">Create</Button>
+                    </div>
                 </div>
             </form>
         </div>
