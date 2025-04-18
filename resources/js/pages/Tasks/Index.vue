@@ -80,23 +80,31 @@ const deleteTask = (id: number, name: string) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    <TableRow v-for="task in props.tasks.data" :key="task.id">
-                        <TableCell>{{ task.id }}</TableCell>
-                        <TableCell>{{ task.name }}</TableCell>
-                        <TableCell>
-                            <a v-if="task.mediaFile" :href="task.mediaFile.original_url" target="_blank">
-                                <img :src="task.mediaFile.original_url" class="h-8 w-8 object-cover rounded-full" />
-                            </a>
-                        </TableCell>
-                        <TableCell>{{ task.is_completed ? 'Yes' : 'No' }}</TableCell>
-                        <TableCell>{{ task.due_date ? df.format(new Date(task.due_date)) : '' }}</TableCell>
-                        <TableCell>
-                            <div class="flex items-center gap-2">
-                                <Link :href="`/tasks/${task.id}/edit`" :class="buttonVariants()">Edit</Link>
-                                <Button @click="deleteTask(task.id, task.name)" variant="destructive">Delete</Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
+                    <template v-if="props.tasks.data.length">
+                        <TableRow v-for="task in props.tasks.data" :key="task.id">
+                            <TableCell>{{ task.id }}</TableCell>
+                            <TableCell>{{ task.name }}</TableCell>
+                            <TableCell>
+                                <a v-if="task.mediaFile" :href="task.mediaFile.original_url" target="_blank">
+                                    <img :src="task.mediaFile.original_url" class="h-8 w-8 rounded-full object-cover" />
+                                </a>
+                            </TableCell>
+                            <TableCell>{{ task.is_completed ? 'Yes' : 'No' }}</TableCell>
+                            <TableCell>{{ task.due_date ? df.format(new Date(task.due_date)) : '' }}</TableCell>
+                            <TableCell>
+                                <div class="flex items-center gap-2">
+                                    <Link :href="`/tasks/${task.id}/edit`" :class="buttonVariants()">Edit</Link>
+                                    <Button @click="deleteTask(task.id, task.name)" variant="destructive">Delete</Button>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                    </template>
+
+                    <template v-else>
+                        <TableRow>
+                            <TableCell colspan="6" class="py-6 text-center text-muted-foreground"> No results found. </TableCell>
+                        </TableRow>
+                    </template>
                 </TableBody>
             </Table>
 
