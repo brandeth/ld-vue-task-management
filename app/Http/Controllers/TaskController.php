@@ -14,15 +14,6 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index()
-    // {
-    //     return Inertia::render('Tasks/Index', [
-    //         'tasks' => Task::with('media', 'taskCategories')
-    //             ->orderBy('created_at', 'desc') // 👈 Sort newest first
-    //             ->paginate(50),
-    //     ]);
-    // }
-
     public function index(Request $request)
     {
         $query = Task::query()
