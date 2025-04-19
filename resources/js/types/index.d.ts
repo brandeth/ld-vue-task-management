@@ -69,6 +69,7 @@ export interface Task {
     created_at: string;
     updated_at: string;
     mediaFile?: MediaFile; // Updated mediaFile to use MediaFile type
+    task_categories: TaskCategory[] | null;
 }
 
 export interface TaskCategory {

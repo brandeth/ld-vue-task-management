@@ -5,11 +5,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { cn } from '@/lib/utils';
+import { type TaskCategory } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { DateFormatter, getLocalTimeZone } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 const breadcrumbs = [
@@ -23,6 +26,14 @@ const breadcrumbs = [
     },
 ];
 
+interface Props {
+    categories: TaskCategory[];
+}
+
+const props = defineProps<Props>();
+
+const categories = ref<TaskCategory[]>(props.categories);
+
 const df = new DateFormatter('en-US', {
     dateStyle: 'long',
 });
@@ -32,15 +43,13 @@ const form = useForm({
     is_completed: false,
     due_date: '',
     media: '', // Added media field
+    categories: [],
 });
 
 const createTask = () => {
-    
     form.transform((data) => ({
         ...data,
-        due_date: data.due_date
-            ? data.due_date.toString()
-            : null,
+        due_date: data.due_date ? data.due_date.toString() : null,
         media: data.media, // Ensure the file is preserved
     })).post(route('tasks.store'), {
         forceFormData: true, // Use FormData for file uploads
@@ -56,7 +65,7 @@ const createTask = () => {
     });
 };
 
-const fileSelected = (event: Event) => { 
+const fileSelected = (event: Event) => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
 
@@ -64,18 +73,14 @@ const fileSelected = (event: Event) => {
         return;
     }
 
-    console.log(file, 'file')
-
     form.media = file;
-
-    console.log(form.media, 'form.media')
 };
 </script>
 
 <template>
     <Head title="Create Task" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="p-4 max-w-2xl">
+        <div class="max-w-2xl p-4">
             <h1 class="mb-4 text-2xl font-bold">Create New Task</h1>
             <form @submit.prevent="createTask" class="space-y-4">
                 <div class="space-y-2">
@@ -88,10 +93,7 @@ const fileSelected = (event: Event) => {
 
                     <Popover>
                         <PopoverTrigger as-child>
-                            <Button
-                                variant="outline"
-                                :class="cn('justify-start text-left font-normal', !form.due_date && 'text-muted-foreground')"
-                            >
+                            <Button variant="outline" :class="cn('justify-start text-left font-normal', !form.due_date && 'text-muted-foreground')">
                                 <CalendarIcon class="mr-2 h-4 w-4" />
                                 {{ form.due_date ? df.format(form.due_date.toDate(getLocalTimeZone())) : 'Pick a date' }}
                             </Button>
@@ -103,14 +105,29 @@ const fileSelected = (event: Event) => {
 
                     <InputError :message="form.errors.due_date" />
                 </div>
+
                 <div class="space-y-2">
                     <Label for="taskMedia">Task Media</Label>
                     <Input type="file" id="name" @change="fileSelected($event)" class="mt-1 block w-full" />
                     <InputError :message="form.errors.media" />
-                    <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress> <!-- Updated progress indicator -->
+                    <progress v-if="form.progress" :value="form.progress.percentage" max="100">{{ form.progress.percentage }}%</progress>
+                    <!-- Updated progress indicator -->
                 </div>
+
+                <div class="grid gap-2">
+                    <Label htmlFor="categories">Categories</Label>
+
+                    <ToggleGroup type="multiple" variant="outline" size="lg" v-model="form.categories">
+                        <ToggleGroupItem v-for="category in categories" :key="category.id" :value="category.id">
+                            {{ category.name }}
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+
+                    <InputError :message="form.errors.categories" />
+                </div>
+
                 <div>
-                    <div class="flex justify-start gap-2 mt-8">
+                    <div class="mt-8 flex justify-start gap-2">
                         <Link href="/tasks" :class="buttonVariants({ variant: 'outline' })">Cancel</Link>
                         <Button type="submit" :disabled="form.processing">Create</Button>
                     </div>
