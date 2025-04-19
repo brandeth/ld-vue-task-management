@@ -6,13 +6,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { cn } from '@/lib/utils';
+import { type Task, type TaskCategory } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { DateFormatter, fromDate, getLocalTimeZone } from '@internationalized/date';
 import { CalendarIcon } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import { ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
+
+interface Props {
+    task: Task;
+    categories: TaskCategory[];
+}
 
 const breadcrumbs = [
     { title: 'Tasks', href: '/tasks' },
@@ -23,12 +30,7 @@ const df = new DateFormatter('en-US', {
     dateStyle: 'long',
 });
 
-const props = defineProps({
-    task: {
-        type: Object,
-        required: true,
-    },
-});
+const props = defineProps<Props>();
 
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const previewUrl = ref<string | null>(null);
@@ -38,6 +40,7 @@ const form = useForm({
     is_completed: props.task.is_completed,
     due_date: props.task.due_date ? fromDate(new Date(props.task.due_date)) : null,
     media: '',
+    categories: props.task.task_categories?.map((category) => category.id),
 });
 
 const clearSelectedFile = () => {
@@ -71,9 +74,7 @@ const fileSelected = (event: Event) => {
 
 const updateTask = () => {
     form.transform((data) => {
-        const dueDate = data.due_date
-            ? new Date(Date.UTC(data.due_date.year, data.due_date.month - 1, data.due_date.day))
-            : null;
+        const dueDate = data.due_date ? new Date(Date.UTC(data.due_date.year, data.due_date.month - 1, data.due_date.day)) : null;
 
         return {
             ...data,
@@ -94,13 +95,14 @@ const updateTask = () => {
     });
 };
 
-
-
-watch(() => previewUrl.value, (url, oldUrl) => {
-    if (oldUrl && url !== oldUrl) {
-        URL.revokeObjectURL(oldUrl);
-    }
-});
+watch(
+    () => previewUrl.value,
+    (url, oldUrl) => {
+        if (oldUrl && url !== oldUrl) {
+            URL.revokeObjectURL(oldUrl);
+        }
+    },
+);
 </script>
 
 <template>
@@ -109,7 +111,6 @@ watch(() => previewUrl.value, (url, oldUrl) => {
         <div class="p-4">
             <h1 class="mb-4 text-2xl font-bold">Edit Task</h1>
             <form @submit.prevent="updateTask" class="space-y-6">
-
                 <!-- Task Name -->
                 <div>
                     <Label for="taskName">Task Name</Label>
@@ -148,18 +149,12 @@ watch(() => previewUrl.value, (url, oldUrl) => {
                 <div class="space-y-2">
                     <Label for="taskMedia" class="text-sm font-medium text-gray-700 dark:text-gray-300">Upload New Media</Label>
                     <div class="flex items-center gap-3">
-                        <Input
-                            type="file"
-                            id="taskMedia"
-                            @change="fileSelected($event)"
-                            class="w-full max-w-sm"
-                            ref="fileInputRef"
-                        />
+                        <Input type="file" id="taskMedia" @change="fileSelected($event)" class="w-full max-w-sm" ref="fileInputRef" />
                         <Button
                             v-if="previewUrl"
                             type="button"
                             variant="ghost"
-                            class="text-red-600 hover:text-red-800 px-2"
+                            class="px-2 text-red-600 hover:text-red-800"
                             @click="clearSelectedFile"
                         >
                             Clear
@@ -169,15 +164,25 @@ watch(() => previewUrl.value, (url, oldUrl) => {
                 </div>
 
                 <!-- Unified Preview -->
-                <div class="flex flex-col items-center justify-center border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
-                    <Label class="text-sm font-semibold text-gray-600 dark:text-gray-200 mb-2">
+                <div
+                    class="flex flex-col items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800"
+                >
+                    <Label class="mb-2 text-sm font-semibold text-gray-600 dark:text-gray-200">
                         {{ previewUrl ? 'Selected Preview' : 'Current Media' }}
                     </Label>
-                    <img
-                        :src="previewUrl || props.task.mediaFile?.original_url"
-                        alt="Task Media"
-                        class="w-40 h-40 object-cover rounded-md shadow"
-                    />
+                    <img :src="previewUrl || props.task.mediaFile?.original_url" alt="Task Media" class="h-40 w-40 rounded-md object-cover shadow" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label htmlFor="categories">Categories</Label>
+
+                    <ToggleGroup type="multiple" variant="outline" size="lg" v-model="form.categories">
+                        <ToggleGroupItem v-for="category in categories" :key="category.id" :value="category.id">
+                            {{ category.name }}
+                        </ToggleGroupItem>
+                    </ToggleGroup>
+
+                    <InputError :message="form.errors.categories" />
                 </div>
 
                 <!-- Submit Button -->
@@ -192,9 +197,9 @@ watch(() => previewUrl.value, (url, oldUrl) => {
 
 <style scoped>
 img {
-  transition: transform 0.2s ease-in-out;
+    transition: transform 0.2s ease-in-out;
 }
 img:hover {
-  transform: scale(1.05);
+    transform: scale(1.05);
 }
 </style>

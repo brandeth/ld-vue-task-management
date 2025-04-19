@@ -17,7 +17,8 @@ import TableHead from '@/components/ui/table/TableHead.vue';
 import TableHeader from '@/components/ui/table/TableHeader.vue';
 import TableRow from '@/components/ui/table/TableRow.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import type { BreadcrumbItem, PaginatedTaskResponse } from '@/types';
+import type { PaginatedTaskResponse } from '@/types';
+import { type BreadcrumbItem, type TaskCategory } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { DateFormatter } from '@internationalized/date';
 import { onMounted } from 'vue';
@@ -36,9 +37,17 @@ const df = new DateFormatter('en-US', {
 
 interface Props {
     tasks: PaginatedTaskResponse;
+    categories: TaskCategory[];
+    selectedCategories: [];
 }
 
 const props = defineProps<Props>();
+const selectedCategories = props.selectedCategories ? props.selectedCategories : [];
+
+const selectCategory = (id: string) => {
+    const selected = selectedCategories.includes(id) ? selectedCategories.filter((category) => category !== id) : [...selectedCategories, id];
+    router.visit('/tasks', { data: { categories: selected } });
+};
 
 onMounted(() => {
     console.log('props:', props.tasks);
@@ -71,12 +80,24 @@ const deleteTask = (id: number, name: string) => {
                 </div>
             </div>
 
+            <div class="mb-4 mt-4 flex flex-row justify-center gap-x-2">
+                <Button
+                    v-for="category in categories"
+                    :key="category.id"
+                    @click="selectCategory(category.id.toString())"
+                    :class="buttonVariants({ variant: selectedCategories.includes(category.id.toString()) ? 'default' : 'secondary' })"
+                >
+                    {{ category.name }} ({{ category.tasks_count }})
+                </Button>
+            </div>
+
             <Table class="min-w-full border-collapse">
                 <TableHeader class="sticky top-0 z-10 bg-white shadow-md">
                     <TableRow class="bg-gray-100">
                         <TableHead class="w-[100px] font-bold">ID</TableHead>
-                        <TableHead class="font-bold">Name</TableHead>
                         <TableHead class="w-[100px] font-bold">File</TableHead>
+                        <TableHead class="font-bold">Name</TableHead>
+                        <TableHead class="w-[100px] font-bold">Categories</TableHead>
                         <TableHead class="w-[100px] font-bold">Completed</TableHead>
                         <TableHead class="w-[200px]">Due Date</TableHead>
                         <TableHead class="w-[100px] font-bold">Actions</TableHead>
@@ -86,11 +107,20 @@ const deleteTask = (id: number, name: string) => {
                     <template v-if="props.tasks.data.length">
                         <TableRow v-for="task in props.tasks.data" :key="task.id">
                             <TableCell>{{ task.id }}</TableCell>
-                            <TableCell>{{ task.name }}</TableCell>
                             <TableCell>
                                 <a v-if="task.mediaFile" :href="task.mediaFile.original_url" target="_blank">
                                     <img :src="task.mediaFile.original_url" class="h-8 w-8 rounded-full object-cover" />
                                 </a>
+                            </TableCell>
+                            <TableCell>{{ task.name }}</TableCell>
+                            <TableCell>
+                                <span
+                                    v-for="category in task.task_categories"
+                                    :key="category.id"
+                                    class="mr-2 rounded-full bg-gray-200 px-2 py-1 text-gray-800"
+                                >
+                                    {{ category.name }}
+                                </span>
                             </TableCell>
                             <TableCell>{{ task.is_completed ? 'Yes' : 'No' }}</TableCell>
                             <TableCell>{{ task.due_date ? df.format(new Date(task.due_date)) : '' }}</TableCell>
